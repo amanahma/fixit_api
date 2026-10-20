@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Query
-from sqlalchemy import select, update
+from sqlalchemy import CursorResult, select, update
 from sqlalchemy.orm import selectinload
 
 from app.deps import DbSession
@@ -87,7 +87,7 @@ async def assign_ticket(ticket_id: int, body: TicketAssign, session: DbSession) 
     if not technician.active:
         raise ConflictError("Cannot assign an inactive technician")
 
-    result = await session.execute(
+    result: CursorResult[tuple[()]] = await session.execute(
         update(Ticket)
         .where(Ticket.id == ticket_id, Ticket.status == TicketStatus.NEW)
         .values(status=TicketStatus.ASSIGNED, technician_id=technician.id)
