@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: fixit
+      POSTGRES_PASSWORD: fixit
+      POSTGRES_DB: fixit
+    volumes:
+      - fixit_pgdata:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      # 5433 on the host so a local Postgres install on 5432 is not shadowed.
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fixit -d fixit"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://fixit:fixit@db:5432/fixit
+      PINCODE_API_BASE_URL: https://api.postalpincode.in
+      SERVICE_DISTRICTS: New Delhi,Central Delhi,South Delhi,North Delhi,East Delhi,West Delhi
+      HTTP_TIMEOUT_SECONDS: "5"
+      LOG_LEVEL: INFO
+      PORT: "8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  fixit_pgdata:
