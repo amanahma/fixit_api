@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 
 import httpx
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from app.config import Settings, get_settings
@@ -55,6 +56,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(technicians.router)
     app.include_router(tickets.router)
     app.include_router(serviceability.router)
+
+    @app.get("/", include_in_schema=False)
+    async def root() -> RedirectResponse:
+        return RedirectResponse(url="/docs")
 
     @app.get("/health", response_model=HealthRead, tags=["health"])
     async def health() -> HealthRead:
