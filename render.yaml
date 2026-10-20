@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: fixit-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SERVICE_DISTRICTS
+        value: New Delhi,Central Delhi,South Delhi,North Delhi,East Delhi,West Delhi
+      - key: PINCODE_API_BASE_URL
+        value: https://api.postalpincode.in
+      - key: HTTP_TIMEOUT_SECONDS
+        value: "5"
+      - key: LOG_LEVEL
+        value: INFO
+      - key: ENABLE_ERROR_PROBE
+        value: "false"
+      - key: PINCODE_MAX_RETRIES
+        value: "2"
