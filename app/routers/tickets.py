@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Query
-from sqlalchemy import CursorResult, select, update
+from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.deps import DbSession
@@ -87,13 +87,9 @@ async def assign_ticket(ticket_id: int, body: TicketAssign, session: DbSession) 
     if not technician.active:
         raise ConflictError("Cannot assign an inactive technician")
 
-    result: CursorResult[tuple[()]] = await session.execute(
-        update(Ticket)
-        .where(Ticket.id == ticket_id, Ticket.status == TicketStatus.NEW)
-        .values(status=TicketStatus.ASSIGNED, technician_id=technician.id)
-    )
-    if result.rowcount != 1:
-        raise ConflictError("Ticket is no longer NEW")
+    ticket.status = TicketStatus.ASSIGNED
+    ticket.technician_id = technician.id
+    await session.flush()
     await session.refresh(ticket)
     return ticket
 
